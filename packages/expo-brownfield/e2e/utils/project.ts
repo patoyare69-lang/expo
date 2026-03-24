@@ -33,8 +33,8 @@ export const createTempProject = async (
   try {
     await createProjectWithTemplate(TEMP_DIR, projectName(suffix));
     await installPackage(projectRoot);
+    await addPlugin(projectRoot);
     if (prebuild) {
-      await addPlugin(projectRoot);
       await prebuildProject(projectRoot, undefined, install);
     }
   } catch (error) {
@@ -147,6 +147,8 @@ const installPackage = async (projectRoot: string) => {
 
   packageJson.resolutions['expo-brownfield'] = path.relative(projectRoot, packageRoot);
   packageJson.dependencies['expo-brownfield'] = '*';
+
+  await fs.promises.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
   // Use --legacy-peer-deps for better stability
   await spawnAsync('pnpm', ['install'], {

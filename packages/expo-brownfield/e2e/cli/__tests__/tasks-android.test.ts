@@ -111,18 +111,15 @@ describe('tasks:android command', () => {
      * Expected behavior: The CLI should validate and ask for prebuild
      */
     it('should validate and ask for prebuild', async () => {
-      // The command fails, because `expo-brownfield` is not added to app.json
-      // But the prebuild should succeed
-      const { exitCode, stdout, stderr } = await executeCommandAsync(
+      const { exitCode, stdout } = await executeCommandAsync(
         TEMP_DIR,
         'bash',
         ['-c', `yes | node ${CLI_PATH} tasks:android`],
         { ignoreErrors: true }
       );
-      expect(exitCode).not.toBe(0);
+      expect(exitCode).toBe(0);
       expect(stdout).toContain(BUILD.PREBUILD_WARNING('android'));
       expect(stdout).toContain(BUILD.PREBUILD_PROMPT);
-      expect(stderr).toContain(`Could not find brownfield library in the project`);
 
       // The android directory should be created and not empty
       await expectPrebuild(TEMP_DIR, 'android');

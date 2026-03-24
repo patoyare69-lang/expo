@@ -114,8 +114,6 @@ describe('build:ios command', () => {
      * Expected behavior: The CLI should validate and ask for prebuild
      */
     it('should validate and ask for prebuild', async () => {
-      // The command fails, because `expo-brownfield` is not added to app.json
-      // But the prebuild should succeed
       const { exitCode, stdout, stderr } = await executeCommandAsync(
         TEMP_DIR,
         'bash',
@@ -125,9 +123,8 @@ describe('build:ios command', () => {
       expect(exitCode).not.toBe(0);
       expect(stdout).toContain(BUILD.PREBUILD_WARNING('ios'));
       expect(stdout).toContain(BUILD.PREBUILD_PROMPT);
-      expect(stderr).toContain(`Could not find brownfield iOS scheme`);
 
-      // The android directory should be created and not empty
+      // The ios directory should be created and not empty
       await expectPrebuild(TEMP_DIR, 'ios');
     });
   });
