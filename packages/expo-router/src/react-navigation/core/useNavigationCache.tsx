@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { use } from 'react';
 
 import {
   CommonActions,
@@ -57,7 +58,7 @@ export function useNavigationCache<
   router,
   emitter,
 }: Options<State, ScreenOptions, EventMap>) {
-  const { stackRef } = React.useContext(NavigationBuilderContext);
+  const { stackRef } = use(NavigationBuilderContext);
 
   const base = React.useMemo((): NavigationItem<State, ScreenOptions, EventMap> & ActionHelpers => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

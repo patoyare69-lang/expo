@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { use } from 'react';
 import { Animated, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,8 +31,8 @@ type Props = {
 export function Screen(props: Props) {
   const insets = useSafeAreaInsets();
 
-  const isParentHeaderShown = React.useContext(HeaderShownContext);
-  const parentHeaderHeight = React.useContext(HeaderHeightContext);
+  const isParentHeaderShown = use(HeaderShownContext);
+  const parentHeaderHeight = use(HeaderHeightContext);
 
   const {
     focused,

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 type Props = {
+  ref?: React.Ref<CardA11yWrapperRef>;
   focused: boolean;
   active: boolean;
   animated: boolean;
@@ -12,11 +13,15 @@ type Props = {
 
 export type CardA11yWrapperRef = { setInert: (value: boolean) => void };
 
-export const CardA11yWrapper = React.forwardRef(
-  (
-    { focused, active, animated, isNextScreenTransparent, detachCurrentScreen, children }: Props,
-    ref: React.Ref<CardA11yWrapperRef>
-  ) => {
+export const CardA11yWrapper = ({
+  ref,
+  focused,
+  active,
+  animated,
+  isNextScreenTransparent,
+  detachCurrentScreen,
+  children,
+}: Props) => {
     // Manage this in separate component to avoid re-rendering card during gestures
     // Otherwise the gesture animation will be interrupted as state hasn't updated yet
     const [inert, setInert] = React.useState(false);
@@ -49,7 +54,4 @@ export const CardA11yWrapper = React.forwardRef(
         {children}
       </View>
     );
-  }
-);
-
-CardA11yWrapper.displayName = 'CardA11yWrapper';
+  };

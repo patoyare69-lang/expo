@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid/non-secure';
 import * as React from 'react';
+import { use } from 'react';
 
 import { NavigationHelpersContext } from './NavigationHelpersContext';
 import { NavigationRouteContext } from './NavigationProvider';
@@ -47,10 +48,10 @@ export function PreventRemoveProvider({ children }: Props) {
     () => new Map()
   );
 
-  const navigation = React.useContext(NavigationHelpersContext);
-  const route = React.useContext(NavigationRouteContext);
+  const navigation = use(NavigationHelpersContext);
+  const route = use(NavigationRouteContext);
 
-  const preventRemoveContextValue = React.useContext(PreventRemoveContext);
+  const preventRemoveContextValue = use(PreventRemoveContext);
   // take `setPreventRemove` from parent context - if exist it means we're in a nested context
   const setParentPrevented = preventRemoveContextValue?.setPreventRemove;
 

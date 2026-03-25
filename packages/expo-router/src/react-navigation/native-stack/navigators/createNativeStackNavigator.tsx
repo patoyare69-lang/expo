@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { use } from 'react';
 
 import {
   createNavigatorFactory,
@@ -53,7 +54,7 @@ function NativeStackNavigator({
     UNSTABLE_router,
   });
 
-  const meta = React.useContext(NavigationMetaContext);
+  const meta = use(NavigationMetaContext);
 
   React.useEffect(() => {
     if (meta && 'type' in meta && meta.type === 'native-tabs') {

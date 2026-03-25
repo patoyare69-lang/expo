@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { use } from 'react';
 
 import { NavigationIndependentTreeContext } from './NavigationIndependentTreeContext';
 
 export function useNavigationIndependentTree() {
-  return React.useContext(NavigationIndependentTreeContext);
+  return use(NavigationIndependentTreeContext);
 }

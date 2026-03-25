@@ -1,5 +1,6 @@
 import isEqual from 'fast-deep-equal';
 import * as React from 'react';
+import { use } from 'react';
 
 import {
   findFocusedRoute,
@@ -151,7 +152,7 @@ export function useLinking(
     [ref]
   );
 
-  const server = React.useContext(ServerContext);
+  const server = use(ServerContext);
 
   const getInitialState = React.useCallback(() => {
     let value: ResultState | undefined;

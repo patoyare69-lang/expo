@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { use } from 'react';
 import { type LayoutChangeEvent, Platform, View } from 'react-native';
 // TODO(@ubax) - RN Migration: remove this dependency and import from react
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
@@ -23,7 +24,7 @@ type FrameContextType = {
 const FrameContext = React.createContext<FrameContextType | undefined>(undefined);
 
 export function useFrameSize<T>(selector: (frame: Frame) => T, throttle?: boolean): T {
-  const context = React.useContext(FrameContext);
+  const context = use(FrameContext);
 
   if (context == null) {
     throw new Error('useFrameSize must be used within a FrameSizeProvider');

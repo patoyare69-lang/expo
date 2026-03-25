@@ -4,20 +4,18 @@ import { Platform, StyleSheet } from 'react-native';
 import { PlatformPressable } from '../PlatformPressable';
 import type { HeaderButtonProps } from '../types';
 
-function HeaderButtonInternal(
-  {
-    disabled,
-    onPress,
-    pressColor,
-    pressOpacity,
-    accessibilityLabel,
-    testID,
-    style,
-    href,
-    children,
-  }: HeaderButtonProps,
-  ref: React.Ref<React.ComponentRef<typeof PlatformPressable>>
-) {
+function HeaderButtonInternal({
+  ref,
+  disabled,
+  onPress,
+  pressColor,
+  pressOpacity,
+  accessibilityLabel,
+  testID,
+  style,
+  href,
+  children,
+}: HeaderButtonProps & { ref?: React.Ref<React.ComponentRef<typeof PlatformPressable>> }) {
   return (
     <PlatformPressable
       ref={ref}
@@ -39,9 +37,7 @@ function HeaderButtonInternal(
   );
 }
 
-export const HeaderButton = React.forwardRef(HeaderButtonInternal);
-
-HeaderButton.displayName = 'HeaderButton';
+export const HeaderButton = HeaderButtonInternal;
 
 const androidRipple = {
   borderless: true,

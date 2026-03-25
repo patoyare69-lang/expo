@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { use } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 import { Card } from './Card';
@@ -88,7 +89,7 @@ function CardContainerInner({
 
   const { direction } = useLocale();
 
-  const parentHeaderHeight = React.useContext(HeaderHeightContext);
+  const parentHeaderHeight = use(HeaderHeightContext);
 
   const { options } = scene.descriptor;
   const enabled = focused && options.keyboardHandlingEnabled !== false;
