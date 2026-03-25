@@ -41,6 +41,7 @@ exports.NavigationStateListenerProvider = NavigationStateListenerProvider;
 const React = __importStar(require("react"));
 // TODO(@ubax) - RN Migration: remove this dependency and import from react
 const with_selector_1 = require("use-sync-external-store/with-selector");
+const react_1 = require("react");
 const useLatestCallback_1 = __importDefault(require("../../utils/useLatestCallback"));
 /**
  * Hook to get a value from the current navigation state using a selector.
@@ -48,7 +49,7 @@ const useLatestCallback_1 = __importDefault(require("../../utils/useLatestCallba
  * @param selector Selector function to get a value from the state.
  */
 function useNavigationState(selector) {
-    const stateListener = React.useContext(NavigationStateListenerContext);
+    const stateListener = (0, react_1.use)(NavigationStateListenerContext);
     if (stateListener == null) {
         throw new Error("Couldn't get the navigation state. Is your component inside a navigator?");
     }
