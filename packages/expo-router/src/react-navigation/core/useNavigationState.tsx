@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { use } from 'react';
 // TODO(@ubax) - RN Migration: remove this dependency and import from react
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { use } from 'react';
 
 import useLatestCallback from '../../utils/useLatestCallback';
 import type { NavigationState, ParamListBase } from '../routers';
