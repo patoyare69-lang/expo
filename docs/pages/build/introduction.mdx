@@ -1,161 +1,500 @@
----
-title: EAS Build
-sidebar_title: Introduction
-description: EAS Build is a hosted service for building app binaries for your Expo and React Native projects.
----
 
-import { Cube01Icon } from '@expo/styleguide-icons/outline/Cube01Icon';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import { BoxLink } from '~/ui/components/BoxLink';
-import { Collapsible } from '~/ui/components/Collapsible';
-import { NoIcon, YesIcon } from '~/ui/components/DocIcons';
-import { FAQ } from '~/ui/components/FAQ';
-import { Terminal } from '~/ui/components/Snippet';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(DuuliyeApp());
+}
 
-**EAS Build** is a hosted Expo Application Services (EAS) service that builds app binaries (also called [standalone apps](/more/glossary-of-terms/#standalone-app)) for your Expo and React Native projects.
+class DuuliyeApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "DUULIYE",
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
+    );
+  }
+}
 
-EAS Build makes building your apps for distribution simple and easy to automate by providing defaults that work well for Expo and React Native projects out of the box, and by handling your app signing credentials for you (if you wish). It also makes sharing builds with your team easier than ever with [internal distribution](/build/internal-distribution/) (using [ad hoc](/build/internal-distribution/) and/or enterprise "universal" provisioning), deeply integrates with EAS Submit for app store submissions, and has first-class support for the [`expo-updates`](/build/updates/) library.
+class HomeScreen extends StatelessWidget {
+  final List products = [
+    {"uc": "60 UC", "price": "\$0.99"},
+    {"uc": "325 UC", "price": "\$4.99"},
+    {"uc": "660 UC", "price": "\$9.75"},
+    {"uc": "720 UC", "price": "\$10.75"},
+    {"uc": "985 UC", "price": "\$14.50"},
+    {"uc": "1045 UC", "price": "\$15.50"},
+  ];
 
-EAS Build is also designed to work for any native project, whether or not you use Expo and React Native. It's the fastest way to get from `npx create-expo-app` or `npx @react-native-community/cli@latest init` to app stores.
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("D U U L I Y E"),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.black],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(products[index]["uc"],
+                        style: TextStyle(color: Colors.white, fontSize: 18)),
+                    Text(products[index]["price"],
+                        style: TextStyle(color: Colors.orange)),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentScreen(
+                          uc: products[index]["uc"],
+                          price: products[index]["price"],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text("Iibso"),
+                )
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
-## Quick start
+class PaymentScreen extends StatefulWidget {
+  final String uc;
+  final String price;
 
-> **info** The `eas` commands below require EAS CLI. See [How to install EAS CLI](/eas/cli/#installation) for more information.
+  PaymentScreen({required this.uc, required this.price});
 
-To build your app, run the following command:
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
 
-<Terminal cmd={['$ eas build --platform all']} />
+class _PaymentScreenState extends State<PaymentScreen> {
+  TextEditingController txController = TextEditingController();
 
-This command sends your project to EAS Build and produces installable binaries for Android and iOS. You can also build for one platform at a time by passing in `--platform android` or `--platform ios` as desired. For complete setup instructions, see [Create your first build](/build/setup/).
+  void sendWhatsApp(String message) async {
+    final url =
+        "https://wa.me/252613858802?text=${Uri.encodeComponent(message)}";
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+  }
 
-## Key features
+  void saveOrder() {
+    FirebaseFirestore.instance.collection("orders").add({
+      "uc": widget.uc,
+      "price": widget.price,
+      "tx": txController.text,
+      "status": "pending",
+      "time": DateTime.now(),
+    });
+  }
 
-- Cloud builds for Android and iOS with consistent environments
-- Automatically provision and manage app signing credentials or use your own
-- Share [internal distribution](/build/internal-distribution/) builds with a URL
-- Automate builds with [build profiles](/build/eas-json/#build-profiles) in **eas.json** (named sets of build settings) and integrations with [EAS Workflows](/eas/workflows/get-started/) or [CI pipelines](/build/building-on-ci/)
-- Auto-submit successful builds to app stores via [`--auto-submit`](/build/automate-submissions/) and EAS Submit
-- First-class [`expo-updates` integration](/build/updates/) with per-profile channels and [runtime version](/eas-update/runtime-versions/) guidance
-- Reuse [development builds](/develop/development-builds/introduction/) across your team. When two team members run `eas build:dev` and the project fingerprint matches, the existing build is downloaded from EAS instead of creating a new one
-- Faster builds via [dependency caching and custom cache paths](/build-reference/caching/)
-- Install builds and updates on devices with [Expo Orbit](https://expo.dev/orbit)
+  void confirmPayment() {
+    if (txController.text.isEmpty) return;
 
-## When to use EAS Build
+    saveOrder();
 
-| Scenario                                                                             | Recommendation |
-| ------------------------------------------------------------------------------------ | -------------- |
-| Build production-ready binaries for app stores                                       | <YesIcon />    |
-| Share builds with testers via [internal distribution](/build/internal-distribution/) | <YesIcon />    |
-| Consistent builds across team members without local environment setup                | <YesIcon />    |
-| Automate builds from CI or [EAS Workflows](/eas/workflows/get-started/)              | <YesIcon />    |
-| Managed app signing credentials                                                      | <YesIcon />    |
-| Debugging native code locally                                                        | <NoIcon />     |
+    sendWhatsApp(
+        "Order Cusub:\n${widget.uc}\n${widget.price}\nTX: ${txController.text}");
 
-## Frequently asked questions
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Mahadsanid"),
+        content: Text("Order-kaaga waa la diray"),
+      ),
+    );
+  }
 
-<FAQ>
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Payment")),
+      body: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(widget.uc, style: TextStyle(fontSize: 22)),
+            Text(widget.price,
+                style: TextStyle(fontSize: 20, color: Colors.orange)),
+            SizedBox(height: 20),
+            Text("Ku dir EVC: 613858802"),
+            SizedBox(height: 20),
+            TextField(
+              controller: txController,
+              decoration: InputDecoration(
+                labelText: "Transaction ID",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: confirmPayment,
+              child: Text("Confirm Payment"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-<Collapsible summary="How do I share builds with my team before submitting to app stores?">
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(DuuliyeApp());
+}
 
-Use [internal distribution](/build/internal-distribution/) to share builds with a URL. Set `"distribution": "internal"` in your [build profile](/build/eas-json/#build-profiles) in **eas.json** to generate installable Android Package (APK) files for Android or [ad hoc builds](/build/internal-distribution/) for iOS.
+class DuuliyeApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "DUULIYE",
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
+    );
+  }
+}
 
-</Collapsible>
+class HomeScreen extends StatelessWidget {
+  final List products = [
+    {"uc": "60 UC", "price": "\$0.99"},
+    {"uc": "325 UC", "price": "\$4.99"},
+    {"uc": "660 UC", "price": "\$9.75"},
+    {"uc": "720 UC", "price": "\$10.75"},
+    {"uc": "985 UC", "price": "\$14.50"},
+    {"uc": "1045 UC", "price": "\$15.50"},
+  ];
 
-<Collapsible summary="Can I use EAS Build with existing React Native projects?">
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("D U U L I Y E"),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.black],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(products[index]["uc"],
+                        style: TextStyle(color: Colors.white, fontSize: 18)),
+                    Text(products[index]["price"],
+                        style: TextStyle(color: Colors.orange)),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentScreen(
+                          uc: products[index]["uc"],
+                          price: products[index]["price"],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text("Iibso"),
+                )
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
-Yes. EAS Build works with existing React Native projects created with `npx react-native init` or similar tools. See [Overview of using Expo with existing React Native apps](/bare/overview/) for more information.
+class PaymentScreen extends StatefulWidget {
+  final String uc;
+  final String price;
 
-</Collapsible>
+  PaymentScreen({required this.uc, required this.price});
 
-<Collapsible summary="Does EAS Build handle app signing credentials?">
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
 
-Yes. EAS Build can generate and manage Android [keystores](/app-signing/app-credentials/#android), iOS [provisioning profiles](/app-signing/app-credentials/#ios) and [distribution certificates](/app-signing/app-credentials/#ios), or use credentials you provide. See [App signing credentials](/app-signing/app-credentials/) for more information.
+class _PaymentScreenState extends State<PaymentScreen> {
+  TextEditingController txController = TextEditingController();
 
-</Collapsible>
+  void sendWhatsApp(String message) async {
+    final url =
+        "https://wa.me/252613858802?text=${Uri.encodeComponent(message)}";
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+  }
 
-<Collapsible summary="Can I run builds locally instead of in the cloud?">
+  void saveOrder() {
+    FirebaseFirestore.instance.collection("orders").add({
+      "uc": widget.uc,
+      "price": widget.price,
+      "tx": txController.text,
+      "status": "pending",
+      "time": DateTime.now(),
+    });
+  }
 
-Yes. Use [local builds](/build-reference/local-builds/) with `eas build --local` to run builds on your machine. This is useful for debugging or for security policies that require local builds.
+  void confirmPayment() {
+    if (txController.text.isEmpty) return;
 
-</Collapsible>
+    saveOrder();
 
-<Collapsible summary="Can I use EAS Build with EAS Workflows or CI pipelines?">
+    sendWhatsApp(
+        "Order Cusub:\n${widget.uc}\n${widget.price}\nTX: ${txController.text}");
 
-Yes. EAS Build integrates with [EAS Workflows](/eas/workflows/get-started/) using the `build` job type. Add a build job to your workflow configuration, for example:
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Mahadsanid"),
+        content: Text("Order-kaaga waa la diray"),
+      ),
+    );
+  }
 
-```yaml
-jobs:
-  build_ios:
-    type: build
-    params:
-      platform: ios
-```
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Payment")),
+      body: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(widget.uc, style: TextStyle(fontSize: 22)),
+            Text(widget.price,
+                style: TextStyle(fontSize: 20, color: Colors.orange)),
+            SizedBox(height: 20),
+            Text("Ku dir EVC: 613858802"),
+            SizedBox(height: 20),
+            TextField(
+              controller: txController,
+              decoration: InputDecoration(
+                labelText: "Transaction ID",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: confirmPayment,
+              child: Text("Confirm Payment"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-The build job supports builds for both platforms or conditional builds based on the branch:
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-```yaml
-jobs:
-  build:
-    type: build
-    params:
-      platform: all
-      profile: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
-```
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(DuuliyeApp());
+}
 
-For more information and other usage examples, see the [EAS Workflows build job](/eas/workflows/pre-packaged-jobs#build).
+class DuuliyeApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "DUULIYE",
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
+    );
+  }
+}
 
-EAS Build supports [builds from GitHub](/build/building-from-github/) and [building on CI](/build/building-on-ci/) with any provider.
+class HomeScreen extends StatelessWidget {
+  final List products = [
+    {"uc": "60 UC", "price": "\$0.99"},
+    {"uc": "325 UC", "price": "\$4.99"},
+    {"uc": "660 UC", "price": "\$9.75"},
+    {"uc": "720 UC", "price": "\$10.75"},
+    {"uc": "985 UC", "price": "\$14.50"},
+    {"uc": "1045 UC", "price": "\$15.50"},
+  ];
 
-</Collapsible>
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("D U U L I Y E"),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.black],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(products[index]["uc"],
+                        style: TextStyle(color: Colors.white, fontSize: 18)),
+                    Text(products[index]["price"],
+                        style: TextStyle(color: Colors.orange)),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentScreen(
+                          uc: products[index]["uc"],
+                          price: products[index]["price"],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text("Iibso"),
+                )
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
-<Collapsible summary="What build server infrastructure does EAS Build use?">
+class PaymentScreen extends StatefulWidget {
+  final String uc;
+  final String price;
 
-Android builds run on Linux runners hosted in Google Cloud Platform, and iOS builds run on macOS runners hosted in Expo's macOS cloud. See [Build server infrastructure](/build-reference/infrastructure/).
+  PaymentScreen({required this.uc, required this.price});
 
-</Collapsible>
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
 
-</FAQ>
+class _PaymentScreenState extends State<PaymentScreen> {
+  TextEditingController txController = TextEditingController();
 
-## Get started
+  void sendWhatsApp(String message) async {
+    final url =
+        "https://wa.me/252613858802?text=${Uri.encodeComponent(message)}";
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+  }
 
-<BoxLink
-  title="Create your first build"
-  description="It should only take a few minutes in total to get up and running for iOS and/or Android."
-  href="/build/setup"
-  Icon={Cube01Icon}
-/>
+  void saveOrder() {
+    FirebaseFirestore.instance.collection("orders").add({
+      "uc": widget.uc,
+      "price": widget.price,
+      "tx": txController.text,
+      "status": "pending",
+      "time": DateTime.now(),
+    });
+  }
 
-<BoxLink
-  title="Share your apps with internal testers"
-  description="EAS Build can help share preview builds of your app with a single URL."
-  href="/build/internal-distribution"
-  Icon={Cube01Icon}
-/>
+  void confirmPayment() {
+    if (txController.text.isEmpty) return;
 
-<BoxLink
-  title="Automate submissions"
-  description="Learn how EAS Build can take your successful builds and handle uploading them to app stores automatically."
-  href="/build/automate-submissions"
-  Icon={Cube01Icon}
-/>
+    saveOrder();
 
-<BoxLink
-  title="App version management"
-  description="Automate version bumps so you never have to think about them again."
-  href="/build-reference/app-versions"
-  Icon={Cube01Icon}
-/>
+    sendWhatsApp(
+        "Order Cusub:\n${widget.uc}\n${widget.price}\nTX: ${txController.text}");
 
-<BoxLink
-  title="Run builds locally or on your own infrastructure"
-  description="EAS Build is a hosted service, and it can also run on your own machine, for example, to debug or to comply with company security policies."
-  href="/build-reference/local-builds"
-  Icon={Cube01Icon}
-/>
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Mahadsanid"),
+        content: Text("Order-kaaga waa la diray"),
+      ),
+    );
+  }
 
-<BoxLink
-  title="Limitations"
-  description="EAS Build is new and rapidly evolving, so we recommend getting familiar with the current limitations."
-  href="/build-reference/limitations"
-  Icon={Cube01Icon}
-/>
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Payment")),
+      body: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(widget.uc, style: TextStyle(fontSize: 22)),
+            Text(widget.price,
+                style: TextStyle(fontSize: 20, color: Colors.orange)),
+            SizedBox(height: 20),
+            Text("Ku dir EVC: 613858802"),
+            SizedBox(height: 20),
+            TextField(
+              controller: txController,
+              decoration: InputDecoration(
+                labelText: "Transaction ID",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: confirmPayment,
+              child: Text("Confirm Payment"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
